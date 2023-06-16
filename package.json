@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "esbuild": "^0.18.3",
+    "purescript": "^0.15.9",
+    "purs-backend-es": "^1.3.2",
+    "rimraf": "^5.0.0",
+    "spago": "^0.21.0",
+    "tailwindcss": "^3.3.2"
+  },
+  "scripts": {
+    "build": "spago bundle-app -m Tictactoe.Main --to dist/bundle.js",
+    "buildopt": "spago -x opt.dhall build && purs-backend-es bundle-app -m Tictactoe.Main --no-build --minify --to dist/bundle.js",
+    "buildcss": "tailwindcss -i src/tailwind.css -o dist/tailwind.css",
+    "buildall": "npm run buildopt && npm run buildcss",
+    "clean": "rimraf .spago && rimraf output && rimraf output-es",
+    "deploy:test": "scp -r dist/* gbagan@connect.liris.cnrs.fr:~/machine/",
+    "deploy": "scp -r dist/* mam@connect.liris.cnrs.fr:~/public_html/machine/"
+  }
+}

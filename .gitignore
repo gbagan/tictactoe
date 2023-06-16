@@ -1,0 +1,16 @@
+/node_modules/
+/.pulp-cache/
+/output/
+/output-es/
+/dce-output/
+/generated-docs/
+/package-lock.json
+/.psc-package/
+/.psc*
+/.purs*
+/.psa*
+/.spago/
+/bundle.*
+/yarn*
+/dist/bundle.*
+/dist/shoelace.js
