@@ -4,25 +4,15 @@ import Relude
 
 import Pha.Html (Html)
 import Pha.Html as H
-import Pha.Html.Attributes as P
 import Pha.Html.Events as E
-import Pha.Html.Util (pc, px, translate)
 import Pha.Svg as S
 import Pha.Svg.Attributes as SA
+import Tictactoe.Helpers (pairwise)
 import Tictactoe.Model (Model, Symb(..))
 import Tictactoe.Msg (Msg(..))
 
 buttonClass ∷ String
 buttonClass = "py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
-
-checkboxClass ∷ String
-checkboxClass = "w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-
-selectClass ∷ String
-selectClass = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-
-inputNumberClass ∷ String
-inputNumberClass = "block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
 
 cardClass ∷ String
 cardClass = "rounded overflow-hidden shadow-lg p-4"
@@ -47,7 +37,7 @@ viewGrid {grid, erdosTable} =
         erdos = fromMaybe (-1.0) $ erdosTable >>= (_ !! i)
       in
         H.div
-        [ H.class_ "absolute cursor-pointer flex items-center justify-center shadow"
+        [ H.class_ "absolute cursor-pointer flex items-center justify-center shadow text-4xl"
         , H.style "height" $ "20%" 
         , H.style "width" $ "20%"
         , H.style "left" $ show (toNumber col * 20.0) <> "%" 
@@ -55,15 +45,46 @@ viewGrid {grid, erdosTable} =
         , H.style "background-color" $ if erdos == -1.0 then "white" else "rgb(255," <> show (255.0 * erdos) <> ",0)"
         , E.onClick \_ -> Play i
         ]
-        [ H.span [] [H.text $ case symb of
-              X -> "X"
-              O -> "O"
-              Empty -> ""
-          ]
+        [ case symb of 
+            X -> H.span [H.style "color" "blue"] [H.text "X"]
+            O -> H.span [H.style "color" "red"] [H.text "O"]
+            Empty -> H.empty
         ]
+
+viewErdos ∷ Array Number → Html Msg
+viewErdos history = 
+  H.div
+    [ H.class_ "relative shadow-md shadow-slate-200 m-4 select-none"
+    , H.style "width" "450px"
+    , H.style "height" "300px" 
+    ]
+    [ S.svg [SA.viewBox (-5.0) (-5.0) 325.0 205.0]
+      [ S.g [] $
+          history # mapWithIndex \i erdos ->
+            S.rect [ SA.x $ 10.0 * toNumber i - 2.0, SA.y $ 198.0 - 300.0 * erdos, SA.width 4.0, SA.height 4.0]
+      , S.g [] $
+          pairwise history # mapWithIndex \i (e1 /\ e2) ->
+            S.line
+              [ SA.x1 $ 10.0 * toNumber i
+              , SA.x2 $ 10.0 * toNumber (i+1)
+              , SA.y1 $ 200.0 - 300.0 * e1
+              , SA.y2 $ 200.0 - 300.0 * e2
+              , SA.strokeWidth 2.0
+              , SA.stroke "black"
+              ] 
+      ]
+    ]
 
 view ∷ Model → Html Msg
 view model =
-  H.div [ H.class_ "w-screen flex flex-row justify-around items-start" ]
-    [ card "Jeu" [viewGrid model]
+  H.div [H.style "height" "400px", H.style "width" "850px"]
+    [
+      card "Tic-Tac-Toe" 
+        [ H.div [H.class_ "flex flex-row"]
+            [ H.div []
+                [viewGrid model, H.button [H.class_ buttonClass, E.onClick \_ -> Reinit] [H.text "Recommencer"]]
+            , H.div []
+                [viewErdos (model.history <#> _.erdos)]
+            ]
+        ]
     ]
