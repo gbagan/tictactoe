@@ -46,8 +46,8 @@ viewGrid {grid, erdosTable} =
         , E.onClick \_ -> Play i
         ]
         [ case symb of 
-            X -> H.span [H.style "color" "blue"] [H.text "X"]
-            O -> H.span [H.style "color" "red"] [H.text "O"]
+            X -> H.span [H.style "color" "rgb(208,0,208)"] [H.text "X"]
+            O -> H.span [H.style "color" "rgb(0,199,199)"] [H.text "O"]
             Empty -> H.empty
         ]
 
@@ -58,19 +58,32 @@ viewErdos history =
     , H.style "width" "450px"
     , H.style "height" "300px" 
     ]
-    [ S.svg [SA.viewBox (-5.0) (-5.0) 325.0 205.0]
-      [ S.g [] $
+    [ S.svg [SA.viewBox (-15.0) (-15.0) 340.0 220.0]
+      [ S.line [SA.x1 0, SA.x2 0, SA.y1 0, SA.y2 200, SA.stroke "black"]
+      , S.g [] $
+        (0 .. 10) <#> \i ->
+          S.line [SA.x1 (-3), SA.x2 3, SA.y1 $ i * 20, SA.y2 $ i * 20, SA.stroke "black"]
+      , S.g [] $
+        (0 .. 10) <#> \i ->
+          S.text
+            [SA.x (-15), SA.y $ i * 20, SA.stroke "black", SA.fontSize 10]
+            [H.text $ if i == 0 then "1.0" else "0." <> show (10-i)]
+      , S.line [SA.x1 0, SA.x2 300, SA.y1 200, SA.y2 200, SA.stroke "black"]
+      , S.g [] $
+        (0 .. 25) <#> \i ->
+          S.line [SA.y1 197, SA.y2 203, SA.x1 $ i * 10, SA.x2 $ i * 10, SA.stroke "black"]
+      , S.g [] $
           history # mapWithIndex \i erdos ->
-            S.rect [ SA.x $ 10.0 * toNumber i - 2.0, SA.y $ 198.0 - 300.0 * erdos, SA.width 4.0, SA.height 4.0]
+            S.rect [ SA.x $ 10 * (i+1) - 2, SA.y $ 198.0 - 300.0 * erdos, SA.width 4, SA.height 4]
       , S.g [] $
           pairwise history # mapWithIndex \i (e1 /\ e2) ->
             S.line
-              [ SA.x1 $ 10.0 * toNumber i
-              , SA.x2 $ 10.0 * toNumber (i+1)
+              [ SA.x1 $ 10.0 * toNumber (i+1)
+              , SA.x2 $ 10.0 * toNumber (i+2)
               , SA.y1 $ 200.0 - 300.0 * e1
               , SA.y2 $ 200.0 - 300.0 * e2
               , SA.strokeWidth 2.0
-              , SA.stroke "black"
+              , SA.stroke "blue"
               ] 
       ]
     ]
@@ -82,9 +95,14 @@ view model =
       card "Tic-Tac-Toe" 
         [ H.div [H.class_ "flex flex-row"]
             [ H.div []
-                [viewGrid model, H.button [H.class_ buttonClass, E.onClick \_ -> Reinit] [H.text "Recommencer"]]
+                [ viewGrid model
+                , H.button [H.class_ buttonClass, E.onClick \_ -> Reinit] [H.text "Recommencer"]
+                ]
             , H.div []
-                [viewErdos (model.history <#> _.erdos)]
+                [ viewErdos (model.history <#> _.erdos)
+                , H.when (maybe false (\e -> e.erdos == 0.0) (last model.history)) \_ ->
+                    H.span [] [H.text "Le premier joueur ne peut plus gagner"]
+                ]
             ]
         ]
     ]

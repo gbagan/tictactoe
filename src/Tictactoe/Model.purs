@@ -26,7 +26,7 @@ rows =
 
 erdos :: Array Symb -> Number
 erdos grid = sum $ rows <#> \row ->
-  if row # any \i -> grid !! i == Just O then
+  if row # any \i -> grid !! i == Just X then
     0.0
   else
     1.0 / pow 2.0 (toNumber (row # count \i -> grid !! i == Just Empty))
@@ -52,13 +52,13 @@ erdosTable grid = grid # mapWithIndex \i symb ->
   if symb /= Empty then
     100.0
   else
-    erdos $ updateAtIndices [i /\ O] grid
+    erdos $ updateAtIndices [i /\ X] grid
 
 
 normalizeTable :: Array Number -> Array Number
 normalizeTable table =
   let
-    table' = table # filter \v -> v < 100.0
+    table' = table # filter (_ < 100.0)
     min = fromMaybe 0.0 $ minimum table'
     max = fromMaybe 0.0 $ maximum table'
   in

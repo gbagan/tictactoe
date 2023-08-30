@@ -28,23 +28,22 @@ update (Play i) = do
   if model.locked || model.grid !! i /= Just Empty then
     pure unit
   else do
-    let grid = model.grid # updateAtIndices [i /\ X]
+    let grid = model.grid # updateAtIndices [i /\ O]
     let erdosT = erdosTable grid
     let model' = model { grid = grid
                        , erdosTable = Just (normalizeTable erdosT)
-                       , locked = true
                        , history = model.history `snoc` { square: i, symbol: X, erdos: erdos grid }
                        }
-    put model' 
     if grid # all \s -> s /= Empty then
-      pure unit
+      put model'
     else do
+      put model' { locked = true }
       delay $ Milliseconds 2000.0
       mj <- evalGen $ randomPick $ bestMoves erdosT
       case mj of
         Nothing -> pure unit 
         Just j -> do
-          let grid' = grid # updateAtIndices [j /\ O]
+          let grid' = grid # updateAtIndices [j /\ X]
           put $ model' { grid = grid'
                        , erdosTable = Nothing
                        , locked = false
