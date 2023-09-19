@@ -1,7 +1,6 @@
 module Tictactoe.View (view) where
 
 import Relude
-
 import Pha.Html (Html)
 import Pha.Html as H
 import Pha.Html.Events as E
@@ -52,14 +51,17 @@ viewGrid {grid, erdosTable} =
         ]
 
 viewErdos ∷ Array Number → Html Msg
-viewErdos history = 
+viewErdos history =
   H.div
     [ H.class_ "relative shadow-md shadow-slate-200 m-4 select-none"
     , H.style "width" "450px"
-    , H.style "height" "300px" 
+    , H.style "height" "320px" 
     ]
-    [ S.svg [SA.viewBox (-15.0) (-15.0) 340.0 220.0]
-      [ S.line [SA.x1 0, SA.x2 0, SA.y1 0, SA.y2 200, SA.stroke "black"]
+    [ S.svg [SA.viewBox (-15.0) (-30.0) 340.0 235.0]
+      [ S.text
+          [SA.x (-15), SA.y (-15), SA.stroke "black", SA.fontSize 12]
+          [H.text "Danger"]
+      , S.line [SA.x1 0, SA.x2 0, SA.y1 0, SA.y2 200, SA.stroke "black"]
       , S.g [] $
         (0 .. 10) <#> \i ->
           S.line [SA.x1 (-3), SA.x2 3, SA.y1 $ i * 20, SA.y2 $ i * 20, SA.stroke "black"]
@@ -84,7 +86,7 @@ viewErdos history =
               , SA.y2 $ 200.0 - 300.0 * e2
               , SA.strokeWidth 2.0
               , SA.stroke "blue"
-              ] 
+              ]
       ]
     ]
 
@@ -100,8 +102,14 @@ view model =
                 ]
             , H.div []
                 [ viewErdos (model.history <#> _.erdos)
-                , H.when (maybe false (\e -> e.erdos == 0.0) (last model.history)) \_ ->
+                , if model.hasWon == O then
+                    H.span [] [H.text $ "Le premier joueur a gagné"]
+                  else if model.hasWon == X then
+                    H.span [] [H.text $ "Le second joueur a gagné"]
+                  else if maybe false (\e -> e.erdos == 0.0) (last model.history) then
                     H.span [] [H.text "Le premier joueur ne peut plus gagner"]
+                  else
+                    H.empty
                 ]
             ]
         ]

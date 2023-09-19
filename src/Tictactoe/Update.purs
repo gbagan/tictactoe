@@ -7,7 +7,7 @@ import Effect.Ref (Ref)
 import Effect.Ref as Ref
 import Pha.Update (Update, Milliseconds(..), delay)
 import Tictactoe.Helpers (randomPick)
-import Tictactoe.Model (Model, Symb(..), init, erdos, erdosTable, normalizeTable, bestMoves)
+import Tictactoe.Model (Model, Symb(..), init, erdos, erdosTable, hasWon, normalizeTable, bestMoves)
 import Tictactoe.Msg (Msg(..))
 
 type Env = { genState ∷ Ref GenState }
@@ -25,7 +25,7 @@ evalGen g = do
 update ∷ Msg → Update' Model Msg Unit
 update (Play i) = do
   model <- get
-  if model.locked || model.grid !! i /= Just Empty then
+  if model.locked || model.grid !! i /= Just Empty || model.hasWon /= Empty then
     pure unit
   else do
     let grid = model.grid # updateAtIndices [i /\ O]
@@ -36,6 +36,8 @@ update (Play i) = do
                        }
     if grid # all \s -> s /= Empty then
       put model'
+    else if hasWon O grid then
+      put $ model' { hasWon = O }
     else do
       put model' { locked = true }
       delay $ Milliseconds 2000.0
@@ -44,10 +46,14 @@ update (Play i) = do
         Nothing -> pure unit 
         Just j -> do
           let grid' = grid # updateAtIndices [j /\ X]
-          put $ model' { grid = grid'
-                       , erdosTable = Nothing
-                       , locked = false
-                       , history = model'.history `snoc` { square: j, symbol: O, erdos: erdos grid' }
-                       }
+          let model'' = model' { grid = grid'
+                               , erdosTable = Nothing
+                               , locked = false
+                               , history = model'.history `snoc` { square: j, symbol: O, erdos: erdos grid' }
+                               }
+          if hasWon X grid' then
+            put $ model'' { hasWon = X }
+          else
+            put model''
 
 update Reinit = modify_ \model -> if model.locked then model else init

@@ -2,14 +2,16 @@ module Tictactoe.Model where
 
 import Relude
 
+import Data.Array (drop)
 import Data.Number (pow)
+import Tictactoe.Config (rules, Rules(..))
 import Tictactoe.Helpers (count)
 
 data Symb = Empty | X | O
 derive instance Eq Symb
 
-rows :: Array (Array Int)
-rows =
+rows5 :: Array (Array Int)
+rows5 =
   [ [0, 1, 2, 3, 4]
   , [5, 6, 7, 8, 9]
   , [10, 11, 12, 13, 14]
@@ -24,6 +26,19 @@ rows =
   , [4, 8, 12, 16, 20]
   ]
 
+rows4 :: Array (Array Int)
+rows4 = (rows5 >>= \row -> [take 4 row, drop 1 row]) <>
+  [ [1, 7, 13, 19]
+  , [3, 7, 11, 15]
+  , [5, 11, 17, 23]
+  , [9, 13, 17, 21]
+  ]
+
+rows :: Array (Array Int)
+rows = case rules of
+  Rules4 -> rows4
+  Rules5 -> rows5
+
 erdos :: Array Symb -> Number
 erdos grid = sum $ rows <#> \row ->
   if row # any \i -> grid !! i == Just X then
@@ -36,6 +51,7 @@ type Model =
   { grid :: Array Symb
   , erdosTable :: Maybe (Array Number)
   , history :: Array { square :: Int, symbol :: Symb, erdos :: Number }
+  , hasWon :: Symb
   , locked :: Boolean
   }
 
@@ -45,6 +61,7 @@ init =
   , history: []
   , erdosTable: Nothing
   , locked: false
+  , hasWon: Empty
   }
 
 erdosTable :: Array Symb -> Array Number
@@ -54,6 +71,10 @@ erdosTable grid = grid # mapWithIndex \i symb ->
   else
     erdos $ updateAtIndices [i /\ X] grid
 
+hasWon :: Symb -> Array Symb -> Boolean
+hasWon who grid =
+  rows # any \row ->
+    row # all \idx -> grid !! idx == Just who
 
 normalizeTable :: Array Number -> Array Number
 normalizeTable table =

@@ -1,6 +1,7 @@
 { name = "purescript"
 , dependencies =
-  [ "generate-values"
+  [ "arrays"
+  , "generate-values"
   , "lcg"
   , "numbers"
   , "pha"
