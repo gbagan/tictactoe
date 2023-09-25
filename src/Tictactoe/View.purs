@@ -7,7 +7,8 @@ import Pha.Html.Events as E
 import Pha.Svg as S
 import Pha.Svg.Attributes as SA
 import Tictactoe.Helpers (pairwise)
-import Tictactoe.Model (Model, Symb(..))
+import Tictactoe.Config (rules, Rules(..))
+import Tictactoe.Model (Model, Symb(..), Status(..))
 import Tictactoe.Msg (Msg(..))
 
 buttonClass ∷ String
@@ -50,6 +51,12 @@ viewGrid {grid, erdosTable} =
             Empty -> H.empty
         ]
 
+
+scaleY :: Number
+scaleY = case rules of
+  Rules4 -> 75.0 
+  Rules5 -> 300.0
+
 viewErdos ∷ Array Number → Html Msg
 viewErdos history =
   H.div
@@ -76,25 +83,31 @@ viewErdos history =
           S.line [SA.y1 197, SA.y2 203, SA.x1 $ i * 10, SA.x2 $ i * 10, SA.stroke "black"]
       , S.g [] $
           history # mapWithIndex \i erdos ->
-            S.rect [ SA.x $ 10 * (i+1) - 2, SA.y $ 198.0 - 300.0 * erdos, SA.width 4, SA.height 4]
+            S.rect [ SA.x $ 10 * (i+1) - 2, SA.y $ 198.0 - scaleY * erdos, SA.width 4, SA.height 4]
       , S.g [] $
           pairwise history # mapWithIndex \i (e1 /\ e2) ->
             S.line
               [ SA.x1 $ 10.0 * toNumber (i+1)
               , SA.x2 $ 10.0 * toNumber (i+2)
-              , SA.y1 $ 200.0 - 300.0 * e1
-              , SA.y2 $ 200.0 - 300.0 * e2
+              , SA.y1 $ 200.0 - scaleY * e1
+              , SA.y2 $ 200.0 - scaleY * e2
               , SA.strokeWidth 2.0
               , SA.stroke "blue"
               ]
       ]
     ]
 
+
+mainTitle :: String
+mainTitle = case rules of
+  Rules4 -> "Jeu M(5,4) : essayer d'aligner 4 ronds sur cette grille !" 
+  Rules5 -> "Jeu M(5,5) : essayer d'aligner 5 ronds sur cette grille !" 
+
 view ∷ Model → Html Msg
 view model =
   H.div [H.style "height" "400px", H.style "width" "850px"]
     [
-      card "Tic-Tac-Toe" 
+      card mainTitle
         [ H.div [H.class_ "flex flex-row"]
             [ H.div []
                 [ viewGrid model
@@ -102,14 +115,11 @@ view model =
                 ]
             , H.div []
                 [ viewErdos (model.history <#> _.erdos)
-                , if model.hasWon == O then
-                    H.span [] [H.text $ "Le premier joueur a gagné"]
-                  else if model.hasWon == X then
-                    H.span [] [H.text $ "Le second joueur a gagné"]
-                  else if maybe false (\e -> e.erdos == 0.0) (last model.history) then
-                    H.span [] [H.text "Le premier joueur ne peut plus gagner"]
-                  else
-                    H.empty
+                , case model.status of
+                    HasWon -> H.span [] [H.text $ "Bravo, vous avez gagné !"]
+                    HasLost -> H.span [] [H.text $ "Dommage, vous avez perdu !"]
+                    CannotWin -> H.span [] [H.text "Dommage, X a bloqué tous les alignements, vous avez perdu !"]
+                    InProgress -> H.empty
                 ]
             ]
         ]

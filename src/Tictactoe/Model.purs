@@ -10,6 +10,9 @@ import Tictactoe.Helpers (count)
 data Symb = Empty | X | O
 derive instance Eq Symb
 
+data Status = InProgress | HasWon | HasLost | CannotWin
+derive instance Eq Status
+
 rows5 :: Array (Array Int)
 rows5 =
   [ [0, 1, 2, 3, 4]
@@ -51,7 +54,7 @@ type Model =
   { grid :: Array Symb
   , erdosTable :: Maybe (Array Number)
   , history :: Array { square :: Int, symbol :: Symb, erdos :: Number }
-  , hasWon :: Symb
+  , status :: Status
   , locked :: Boolean
   }
 
@@ -61,7 +64,7 @@ init =
   , history: []
   , erdosTable: Nothing
   , locked: false
-  , hasWon: Empty
+  , status: InProgress
   }
 
 erdosTable :: Array Symb -> Array Number
