@@ -56,6 +56,7 @@ type Model =
   , history :: Array { square :: Int, symbol :: Symb, erdos :: Number }
   , status :: Status
   , locked :: Boolean
+  , isStatusShown :: Boolean
   }
 
 init :: Model
@@ -65,6 +66,7 @@ init =
   , erdosTable: Nothing
   , locked: false
   , status: InProgress
+  , isStatusShown: false
   }
 
 erdosTable :: Array Symb -> Array Number

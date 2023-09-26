@@ -23,6 +23,10 @@ card title body =
     $ [ H.div [ H.class_ "font-bold text-xl mb-2" ] [ H.text title ] ]
     <> body
 
+
+statusClass ∷ String
+statusClass = "block bg-white rounded-2xl border-4 border-red-500 border-solid p-2 text-2xl text-red-500"
+
 viewGrid ∷ Model → Html Msg
 viewGrid {grid, erdosTable} =
   H.div
@@ -57,12 +61,20 @@ scaleY = case rules of
   Rules4 -> 75.0 
   Rules5 -> 300.0
 
+
+printIndex :: Int -> String
+printIndex n = case rules of
+  Rules4 -> printIndex' (n * 4)
+  Rules5 -> printIndex' n
+  where
+  printIndex' m = show (m / 10) <> "." <> show (m `mod` 10)
+
 viewErdos ∷ Array Number → Html Msg
 viewErdos history =
   H.div
     [ H.class_ "relative shadow-md shadow-slate-200 m-4 select-none"
-    , H.style "width" "450px"
-    , H.style "height" "320px" 
+    , H.style "width" "430px"
+    , H.style "height" "300px" 
     ]
     [ S.svg [SA.viewBox (-15.0) (-30.0) 340.0 235.0]
       [ S.text
@@ -76,7 +88,7 @@ viewErdos history =
         (0 .. 10) <#> \i ->
           S.text
             [SA.x (-15), SA.y $ i * 20, SA.stroke "black", SA.fontSize 10]
-            [H.text $ if i == 0 then "1.0" else "0." <> show (10-i)]
+            [H.text $ printIndex (10-i)]
       , S.line [SA.x1 0, SA.x2 300, SA.y1 200, SA.y2 200, SA.stroke "black"]
       , S.g [] $
         (0 .. 25) <#> \i ->
@@ -103,12 +115,31 @@ mainTitle = case rules of
   Rules4 -> "Jeu M(5,4) : essayer d'aligner 4 ronds sur cette grille !" 
   Rules5 -> "Jeu M(5,5) : essayer d'aligner 5 ronds sur cette grille !" 
 
+
+
+
+viewStatus ∷ forall msg. Model → Html msg
+viewStatus {isStatusShown, status} =
+  H.div [H.class_ "w-full h-full flex items-center justify-center absolute z-50 pointer-events-none"]
+    [ H.div [H.class_ if isStatusShown then
+                          statusClass <> " opacity-1"
+                      else
+                          statusClass <> " opacity-0 transition transition-500"
+            ]
+      [ case status of
+                    HasWon -> H.span [] [H.text "Bravo, vous avez gagné !"]
+                    HasLost -> H.span [] [H.text "Dommage, vous avez perdu !"]
+                    CannotWin -> H.span [] [H.text "X a bloqué tous les alignements, vous avez perdu !"]
+                    InProgress -> H.empty
+      ]
+    ]
+
 view ∷ Model → Html Msg
 view model =
-  H.div [H.style "height" "400px", H.style "width" "850px"]
+  H.div [H.style "height" "400px", H.style "width" "830px"]
     [
       card mainTitle
-        [ H.div [H.class_ "flex flex-row"]
+        [ H.div [H.class_ "relative flex flex-row"]
             [ H.div []
                 [ viewGrid model
                 , H.button [H.class_ buttonClass, E.onClick \_ -> Reinit] [H.text "Recommencer"]
@@ -116,11 +147,13 @@ view model =
             , H.div []
                 [ viewErdos (model.history <#> _.erdos)
                 , case model.status of
-                    HasWon -> H.span [] [H.text $ "Bravo, vous avez gagné !"]
-                    HasLost -> H.span [] [H.text $ "Dommage, vous avez perdu !"]
+                    HasWon -> H.span [] [H.text "Bravo, vous avez gagné !"]
+                    HasLost -> H.span [] [H.text "Dommage, vous avez perdu !"]
                     CannotWin -> H.span [] [H.text "Dommage, X a bloqué tous les alignements, vous avez perdu !"]
                     InProgress -> H.empty
                 ]
+            , viewStatus model
             ]
+        
         ]
     ]

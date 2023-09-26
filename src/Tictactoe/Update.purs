@@ -22,6 +22,13 @@ evalGen g = do
   liftEffect $ Ref.write st' genState
   pure v
 
+
+showStatus ∷ Model → Update' Model Msg Unit
+showStatus model = do
+  put $ model {isStatusShown = true}
+  delay $ Milliseconds 1000.0
+  put $ model {isStatusShown = false}
+
 update ∷ Msg → Update' Model Msg Unit
 update (Play i) = do
   model <- get
@@ -37,7 +44,7 @@ update (Play i) = do
     if grid # all \s -> s /= Empty then
       put model'
     else if hasWon O grid then
-      put $ model' { status = HasWon }
+      showStatus $ model' { status = HasWon }
     else do
       put model' { locked = true }
       delay $ Milliseconds 2000.0
@@ -53,9 +60,9 @@ update (Play i) = do
                                , history = model'.history `snoc` { square: j, symbol: O, erdos: erdosValue }
                                }
           if erdosValue == 0.0 then
-            put $ model'' { status = CannotWin }
+            showStatus $ model'' { status = CannotWin }
           else if hasWon X grid' then
-            put $ model'' { status = HasLost }
+            showStatus $ model'' { status = HasLost }
           else
             put model''
 
