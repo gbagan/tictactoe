@@ -136,7 +136,7 @@ viewStatus {isStatusShown, status} =
 
 view ∷ Model → Html Msg
 view model =
-  H.div [H.style "height" "400px", H.style "width" "830px"]
+  H.div [H.style "height" "400px", H.style "width" "750px"]
     [
       card mainTitle
         [ H.div [H.class_ "relative flex flex-row"]
@@ -149,7 +149,7 @@ view model =
                 , case model.status of
                     HasWon -> H.span [] [H.text "Bravo, vous avez gagné !"]
                     HasLost -> H.span [] [H.text "Dommage, vous avez perdu !"]
-                    CannotWin -> H.span [] [H.text "Dommage, X a bloqué tous les alignements, vous avez perdu !"]
+                    CannotWin -> H.span [] [H.text "Dommage, X a bloqué tous les alignements !"]
                     InProgress -> H.empty
                 ]
             , viewStatus model
